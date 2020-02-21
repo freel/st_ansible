@@ -24,14 +24,33 @@
       pip:
         name: docker
 
+    - debug:
+        msg: "{{ hostvars['master-node']['ansible_host'] }}"
+
     - name: Init new swarm
       docker_swarm:
         state: present
-      when: master|bool
+        advertise_addr: "{{ hostvars['master-node']['ansible_host'] }}"
+      when: master is defined and master|bool
+      register: swarm_info
 
-#    - name: Join to swarm
-#      docker_swarm:
-#        state: join
-#        advertise_addr: 192.168.1.2
-#        join_token: SWMTKN-1--xxxxx
-#        remote_addrs: [ '192.168.1.1:2377' ]
+    - set_fact:
+        manager_token: "{{ swarm_info.swarm_facts.JoinTokens.Manager }}"
+        worker_token: "{{ swarm_info.swarm_facts.JoinTokens.Worker }}"
+      when: master is defined and master | bool
+
+    - name: Join to swarm manager
+      docker_swarm:
+        state: join
+        advertise_addr: "{{ ansible_host }}"
+        join_token: "{{ hostvars['master-node']['manager_token'] }}"
+        remote_addrs: "{{ hostvars['master-node']['ansible_host'] }}:2377"
+      when: master is not defined and not master | bool
+
+    - name: Join to swarm worker
+      docker_swarm:
+        state: join
+        advertise_addr: "{{ ansible_host }}"
+        join_token: "{{ hostvars['master-node']['worker_token'] }}"
+        remote_addrs: "{{ hostvars['master-node']['ansible_host'] }}:2377"
+      when: master is not defined and not master | bool

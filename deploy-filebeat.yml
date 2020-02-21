@@ -11,8 +11,10 @@
       docker_container:
         name: filebeat
         image: docker.elastic.co/beats/filebeat:7.6.0
+        state: started
         restart: yes
         restart_policy: always
+        recreate: yes
         volumes:
           - /usr/local/share/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
           - /usr/local/share/nginx/log:/usr/share/services/nginx

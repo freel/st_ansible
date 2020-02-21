@@ -11,8 +11,10 @@
       docker_container:
         name: nginx
         image: nginx:stable
+        state: started
         restart: yes
         restart_policy: always
+        recreate: yes
         ports:
           - "80:80"
           - "9200:9200"
