@@ -1,0 +1,23 @@
+- hosts: nginx
+  tasks:
+    - name: Checkout nginx config
+      git:
+        repo: "https://github.com/freel/nginx_config.git"
+        dest: /usr/local/share/nginx
+      become: true
+      become_method: sudo
+
+    - name: Create nginx container
+      docker_container:
+        name: nginx
+        image: nginx:stable
+        restart: yes
+        restart_policy: always
+        ports:
+          - "80:80"
+          - "9200:9200"
+        volumes:
+          - /usr/local/share/nginx/load-balancer.conf:/etc/nginx/conf.d/load-balancer.conf
+          - /usr/local/share/nginx/log:/var/log/nginx
+      become: true
+      become_method: sudo

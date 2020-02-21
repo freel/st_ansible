@@ -1,0 +1,7 @@
+- name: Create a jenkins container
+  docker_container:
+    name: jenkins
+    image: jenkins
+    
+    volumes:
+      - /data

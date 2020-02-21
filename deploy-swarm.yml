@@ -1,0 +1,37 @@
+- hosts: swarm
+  become: true
+  become_method: sudo
+  tasks:
+    - name: Install required system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'gnupg2', 'python-pip', 'virtualenv', 'python3-setuptools']
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt: update_cache=yes name=docker-ce state=latest
+      loop: ['docker-ce', 'docker-ce-cli', 'containerd.io']
+
+    - name: Install Docker Module for Python
+      pip:
+        name: docker
+
+    - name: Init new swarm
+      docker_swarm:
+        state: present
+      when: master|bool
+
+#    - name: Join to swarm
+#      docker_swarm:
+#        state: join
+#        advertise_addr: 192.168.1.2
+#        join_token: SWMTKN-1--xxxxx
+#        remote_addrs: [ '192.168.1.1:2377' ]

@@ -1,0 +1,20 @@
+- hosts: nginx
+  tasks:
+    - name: Checkout filebeat config
+      git:
+        repo: "https://github.com/freel/filebeat_config.git"
+        dest: /usr/local/share/filebeat
+      become: true
+      become_method: sudo
+
+    - name: Create filebeat container
+      docker_container:
+        name: filebeat
+        image: docker.elastic.co/beats/filebeat:7.6.0
+        restart: yes
+        restart_policy: always
+        volumes:
+          - /usr/local/share/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+          - /usr/local/share/nginx/log:/usr/share/services/nginx
+      become: true
+      become_method: sudo
