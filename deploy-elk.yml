@@ -1,0 +1,44 @@
+- hosts: swarm
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Checkout Logstash config
+      git:
+        repo: "https://github.com/freel/st-logstash.git"
+        dest: /usr/local/share/logstash
+
+    - name: Add cron job to renew logstash config
+      cron:
+        name: "update logstash"
+        minute: "*/1"
+        job: "git -C /usr/local/share/logstash pull"
+
+    - name: Add cron job to renew logstash config
+      cron:
+        name: "update logstash"
+        minute: "*/1"
+        job: "sleep 30 && git -C /usr/local/share/logstash pull"
+
+- hosts: master-node
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Checkout elk config
+      git:
+        repo: "https://github.com/freel/docker-elk.git"
+        dest: /usr/local/share/elk
+      become: true
+      become_method: sudo
+
+    - name: Create a network
+      docker_network:
+        name: elk
+        driver: overlay
+        scope: swarm
+
+    - name: Deploy stack from a compose file
+      docker_stack:
+        state: present
+        name: elkstack
+        compose:
+          - /usr/local/share/elk/docker-compose.yml

@@ -22,7 +22,7 @@
 
     - name: Install Docker Module for Python
       pip:
-        name: docker
+        name: docker, jsondiff, pyyaml
 
     - debug:
         msg: "{{ hostvars['master-node']['ansible_host'] }}"
@@ -54,3 +54,6 @@
         join_token: "{{ hostvars['master-node']['worker_token'] }}"
         remote_addrs: "{{ hostvars['master-node']['ansible_host'] }}:2377"
       when: master is not defined and not master | bool
+
+    - name: encrease vm.map_max_count
+      command: sysctl -w vm.max_map_count=262144
